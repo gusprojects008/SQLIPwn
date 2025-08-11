@@ -1,0 +1,57 @@
+body.dark-mode {
+  background-color: black;
+}
+
+body.light-mode {
+  background-color: whitesmoke;
+}
+
+h1 {
+  color: green;
+  text-align: center;
+  font-family: Monospace;
+  font-size: 4rem;
+}
+
+form {
+  display: grid;
+  margin: auto;
+  justify-content: center;
+  text-align: center;
+  width: auto;
+  height: auto;
+  gap: 5%;
+}
+
+form input {
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 0.2rem;
+  background-color: rgba(255, 50, 50, 1);
+}
+
+form textarea {
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 0.2rem;
+  background-color: rgba(100, 200, 200, 1);
+}
+
+form button {
+  font-size: 1rem;
+}
+
+#server-response {
+  color: green;
+  font-size: 1.5rem;
+  text-align: center;
+  margin: 2rem auto;
+}
+
+#users-comments {
+  color: red;
+  font-size: 1.5rem;
+  text-align: center;
+  margin: 2rem auto;
+}
+
