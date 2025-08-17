@@ -1,71 +1,76 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-# Good pratice
-#from .models import Comment
-# from . import models
-# comment_model = models()
+from django.conf import settings
 import sqlite3
 import os
+import re
 
 # Create your views here.
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-DATABASE_PATH = os.path.join(BASE_DIR, "database.db")
-#DATABASE_PATH = os.path.join(BASE_DIR, "db.sqlite3")
-
-#print(BASE_DIR, DATABASE_PATH)
+DATABASE_PATH = os.path.join(BASE_DIR, "db.sqlite3")
 
 def index(request):
     return render(request, "index.html")
 
-@csrf_exempt
+#def basicSanitation(string):
+     
+
 def add_comment(request):
 
     if request.method != "POST":
        return HttpResponse("Bad Method );", status=405)
 
-    username = request.POST.get("username", "").strip()
-    comment = request.POST.get("comment", "").strip()
+    if settings.VULNERABLE:
+       username = request.POST.get("username", "").strip()
+       comment = request.POST.get("comment", "").strip()
 
-    # intentionally vulnerable to SQLI
-    connection_db = sqlite3.connect(DATABASE_PATH)
-    cursor = connection_db.cursor()
-    cursor.execute("""
-      CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        base_username TEXT,
-        user_count TEXT UNIQUE,
-        user_comment TEXT
-      )
-    """)
-    cursor.execute(f"SELECT COUNT(*) FROM comments WHERE base_username = '{username}'")
-    count = cursor.fetchone()[0]
-    if count >= 3:
-       connection_db.close()
-       return HttpResponse("Oops! You've reached the maximum comment limit );")
-    username_count = f"{username} quantity:{count + 1}"
-    cursor.execute(f"""
-      INSERT INTO comments (base_username, user_count, user_comment)
-      VALUES ('{username}', '{username_count}', '{comment}')
-    """)
-    connection_db.commit()
-    connection_db.close()
-   
-    # Good pratice
-    '''
-    count = Comment.objects.filter(base_username=username).count()
+       connection_db = sqlite3.connect(DATABASE_PATH)
+       cursor = connection_db.cursor()
 
-    if count >= 3:
-       return HttpResponse("Oops! You've reached the maximum comment limit );")
+       try:
+          cursor.execute("""
+            CREATE TABLE IF NOT EXISTS UsersCommentsCountsVulnerable (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              username TEXT UNIQUE,
+              comment TEXT UNIQUE
+              COunt INT UNIQUE,
+            )
+          """)
+          cursor.execute(f"SELECT COUNT(*) FROM UsersCommentsCounts WHERE username = '{username}'")
+          count = cursor.fetchone()[0]
+          if count >= 3:
+             connection_db.close()
+             return HttpResponse("Oops! You've reached the maximum comment limit );")
+          count += 1
+          cursor.execute(f"""
+            INSERT INTO UsersCommentsCounts (username, comment, count)
+            VALUES ('{username}', '{comment}', '{count}')
+          """)
 
-    username_count = f"{username} quantity:{count + 1}"
+          connection_db.commit()
+       finally:
+              connection_db.close()
 
-    Comment.objects.create(
-      base_username=username,
-      user_count=username_count,
-      user_comment=comment
-    )
-   '''
+    else:
+        #from .models import Comment
+        from . import models
+        UCCtable = models.UsersCommentsCounts()
+
+        username = request.POST.get("username", "").strip()
+        comment = request.POST.get("comment", "").strip()
+        count = UCCtable.objects.filter(base_username=username).count()
+
+        if count >= 3:
+           return HttpResponse("Oops! You've reached the maximum comment limit );")
+
+        username_count = f"{username} quantity:{count + 1}"
+
+        Comment.objects.create(
+          base_username=username,
+          user_count=username_count,
+          user_comment=comment
+        )
 
     response = {
       "status": "success",
@@ -84,11 +89,14 @@ def list_comments(request):
     db_connection = sqlite3.connect(DATABASE_PATH)
     db_cursor = db_connection.cursor()
     
-    db_cursor.execute("SELECT base_username, user_comment FROM comments")
-    rows = db_cursor.fetchall()
-    comments_response = [{"username": username, "comment": comment} for username, comment in rows]
-    db_connection.close()
-    return JsonResponse({"status": "success", "message": comments_response})
+    try:
+       db_cursor.execute("SELECT base_username, user_comment FROM comments")
+       rows = db_cursor.fetchall()
+       comments_response = [{"username": username, "comment": comment} for username, comment in rows]
+       db_connection.close()
+       return JsonResponse({"status": "success", "message": comments_response})
+    except Exception:
+           return JsonResponse({"status": "error", "message": "no answer );"})
     
     # Good pratice
     '''

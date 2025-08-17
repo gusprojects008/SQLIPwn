@@ -1,14 +1,12 @@
-# Good pratice
-'''
+from django.conf import settings
 from django.db import models
 
 # Create your models here.
 
-class Comment(models.Model):
-      base_username = models.CharField(max_length=100)
-      user_count = models.CharField(max_length=150, unique=True)
-      user_comment = models.TextField()
-
-      def __str__(self):
-          return self.username_count
-'''
+if settings.VULNERABLE == False:
+   class UsersCommentsCounts(models.Model):
+         username = models.CharField(max_length=100, unique=True)
+         comment = models.TextField(unique=True)
+         count = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)], unique=True)
+         def __str__(self):
+             return self.count

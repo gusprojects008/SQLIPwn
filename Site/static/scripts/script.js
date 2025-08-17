@@ -8,15 +8,27 @@ const serverResponse = document.getElementById("server-response");
 const usersComments = document.getElementById("users-comments");
 
 function UserCommentAdd(username, comment, element) {
+  username = basicSanitation(username);
+  comment = basicSanitation(comment);
   const commentEl = document.createElement("p");
-  commentEl.innerHTML = `<b>${username}</b><br>${comment}`;
+  commentEl.textContent = `${username} ${comment}`;
   element.appendChild(commentEl);
+}
+
+function basicSanitation(string) {
+  return string
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 sendData.addEventListener("click", async (event) => {
   event.preventDefault(); // Prevents form reloading
-  const usernameValue = username.value.trim();
-  const userCommentValue = userComment.value.trim();
+  const usernameValue = basicSanitation(username.value.trim());
+  const userCommentValue = basicSanitation(userComment.value.trim());
+  console.log(usernameValue, userCommentValue);
 
   if (!usernameValue || usernameValue.length > 32) {
      alert("Insira um username de até 32 caracteres! (Enter a username of up 32 characters!)");
@@ -37,7 +49,7 @@ sendData.addEventListener("click", async (event) => {
       const response = await fetch("/SQLIPwn/scripts/api/add_comment", {
         method: "POST",
         headers: {
-         "Content-Type": "application/x-www-form-urlencoded"
+          "Content-Type": "application/x-www-form-urlencoded"
         },
         body: userDataValues.toString()
       });
@@ -45,14 +57,14 @@ sendData.addEventListener("click", async (event) => {
     const APIresponse = await response.json();
 
     if (response.ok && APIresponse.status === "success") {
-       serverResponse.innerHTML = APIresponse.message;
+       serverResponse.textContent = APIresponse.message;
        UserCommentAdd(APIresponse.username, APIresponse.comment, usersComments);
     } else {
-      serverResponse.innerHTML = APIresponse.message;
+      serverResponse.textContent = APIresponse.message;
     }
 
   } catch (error) {
-    serverResponse.innerHTML = "Error! server connect failed or username already exists );";
+    serverResponse.textContent = "Error! server connect failed or username already exists );";
     console.log(error);
     };
 });
